@@ -1,6 +1,7 @@
 package com.lerdorf.fancy_plugin_1_19;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
@@ -14,6 +15,9 @@ public class Door implements CommandExecutor, Serializable {
 	 */
 	private static final long serialVersionUID = 7597479326871735203L;
 
+	public static transient HashMap<String, Door> doors = new HashMap<String, Door>();
+	
+	String name;
 	String[] open;
 	String[][] phases;
 	String[] closed;
@@ -29,7 +33,14 @@ public class Door implements CommandExecutor, Serializable {
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
         if(cmd.getName().equalsIgnoreCase("door")){
-        	
+        	if (args.length == 3) {
+        		Door door;
+        		if (doors.containsKey(args[0])) {
+        			door = doors.get(args[0]);
+        		} else {
+        			
+        		}
+        	}
         	return true;
         }
         return false;
