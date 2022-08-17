@@ -1,0 +1,42 @@
+main: com.lerdorf.fancy_plugin_1_19.FancyPlugin
+name: CarlsFancyPlugin
+version: 1.0
+api-version: 1.13
+
+commands:
+   worldreset:
+      description: Resets the Sky Battle map by reloading it from a backup
+      usage: /worldreset
+      permission: FancyPlugin.worldreset
+   wr:
+      description: Lazy way to reset the Sky Battle map by reloading it from a backup
+      usage: /wr
+      permission: FancyPlugin.worldreset
+   sg:
+      description: Lazy way to start wuhu island survival games
+      usage: /sg
+      permission: FancyPlugin.survivalgames
+   survivalgames:
+      description: Start wuhu island survival games
+      usage: /survivalgames
+      permission: FancyPlugin.survivalgames
+   heal:
+      description: Heals your health and saturation
+      usage: /heal
+      permission: FancyPlugin.heal
+   h:
+      description: Heals your health and saturation
+      usage: /h
+      permission: FancyPlugin.heal
+   healall:
+      description: Heals health and saturation for all players
+      usage: /healall
+      permission: FancyPlugin.heal
+   ha:
+      description: Heals health and saturation for all players
+      usage: /ha
+      permission: FancyPlugin.heal
+   door:
+      description: Creates a door, the phase can be `open`, `close`, or a number (for inbetween stages)
+      usage: /door [name] [phase] [delay]
+      permission: FancyPlugin.door
