@@ -47,6 +47,8 @@ public class Door implements CommandExecutor, Serializable {
 	public int dir = 0;
 
 	public boolean active = false;
+	
+	public String filepath;
 
 	public Door() {
 	}
@@ -61,6 +63,7 @@ public class Door implements CommandExecutor, Serializable {
 		this.y2 = y2;
 		this.z2 = z2;
 		this.ticks = ticks;
+		save("door_"+filepath);
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -284,6 +287,20 @@ public class Door implements CommandExecutor, Serializable {
 		}
 		zPoses[a][b] = z;
 	}
+	
+	public void save() {
+		// TODO Auto-generated method stub
+		try {
+			FileOutputStream fos = new FileOutputStream(this.filepath);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+			// write object to file
+			oos.writeObject(this);
+			//this.filepath = world+"/FancyPlugin/" + filename;
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
 
 	public void save(String filename) {
 		try {
@@ -294,7 +311,8 @@ public class Door implements CommandExecutor, Serializable {
 			
 			// write object to file
 			oos.writeObject(this);
-
+			
+			this.filepath = world+"/FancyPlugin/" + filename;
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -326,6 +344,7 @@ public class Door implements CommandExecutor, Serializable {
 			currentPos = yeet.currentPos;
 			dir = yeet.dir;
 			active = yeet.active;
+			this.filepath = filepath
 			
 		} catch (IOException ex) {
 			ex.printStackTrace();
