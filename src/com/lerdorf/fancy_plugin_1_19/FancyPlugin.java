@@ -50,6 +50,8 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onDisable() {
 		System.out.println("Shutting down Fancy Plugin...");
+		for (Door d : doors)
+			d.save();
 	}
 
 	@EventHandler
