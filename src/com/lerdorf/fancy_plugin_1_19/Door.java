@@ -46,7 +46,7 @@ public class Door implements CommandExecutor, Serializable {
 	public int currentPos;
 	public int dir = 0;
 
-	boolean active = false;
+	public boolean active = false;
 
 	public Door() {
 	}
@@ -66,7 +66,20 @@ public class Door implements CommandExecutor, Serializable {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("door")) {
 			Player player = (Player) sender;
-			if (args.length >= 2) {
+			if (args.length == 1) {
+				if (args[0].equalsIgnoreCase("lever")) {
+					Block b = player.getTargetBlock(null, 100);
+					if (b == null)
+						sender.sendMessage("Error: you must be looking at a block");
+					else {
+						leverX = b.getLocation().getBlockX();
+						leverY = b.getLocation().getBlockY();
+						leverZ = b.getLocation().getBlockZ();
+						return true;
+					}
+				}
+			}
+			else if (args.length >= 2) {
 				Door door;
 				ArrayList<Block> blocks = new ArrayList<Block>();
 				try {
@@ -272,5 +285,55 @@ public class Door implements CommandExecutor, Serializable {
 		zPoses[a][b] = z;
 	}
 
+	public void save(String filename) {
+		try {
+			(new File(world + "/FancyPlugin")).mkdirs();
+			(new File(world + "/FancyPlugin/" + filename)).createNewFile();
+			FileOutputStream fos = new FileOutputStream(world + "/FancyPlugin/" + filename);
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			
+			// write object to file
+			oos.writeObject(this);
+
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void load(String filepath) {
+		try (FileInputStream fis = new FileInputStream(filepath); ObjectInputStream ois = new ObjectInputStream(fis)) {
+
+			// read object from file
+			Door yeet = (Door) ois.readObject();
+			x1 = yeet.x1;
+			y1 = yeet.y1;
+			z1 = yeet.z1;
+			x2 = yeet.x2;
+			y2 = yeet.y2;
+			z2 = yeet.z2;
+			leverX = yeet.leverX;
+			leverY = yeet.leverY;
+			leverZ = yeet.leverZ;
+			world = yeet.world;
+			name = yeet.name;
+			open = yeet.open;
+			phases = yeet.phases;
+			closed = yeet.closed;
+			xPoses = yeet.xPoses;
+			yPoses = yeet.yPoses;
+			zPoses = yeet.zPoses;
+			ticks = yeet.ticks;
+			currentPos = yeet.currentPos;
+			dir = yeet.dir;
+			active = yeet.active;
+			
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
 	// loc.getBlock().setBlockData(Bukkit.createBlockData(datas[i-minX][j-minY][k-minZ]));
 }
