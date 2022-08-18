@@ -28,16 +28,23 @@ public class Door implements CommandExecutor, Serializable {
 	private static final long serialVersionUID = 7597479326871735203L;
 
 	public static transient HashMap<String, Door> doors = new HashMap<String, Door>();
+	
+	public static final int OPENING = 1, OPEN = -1;
+	public static final int STATIONARY = 0;
+	public static final int CLOSING = -1, CLOSED = -2;
 
-	public int x1, y1, z1, x2, y2, z2;
+	public int x1, y1, z1, x2, y2, z2, leverX, leverY, leverZ;
+	public String world;
 	public String name;
 	public String[] open;
 	public String[][] phases;
 	public String[] closed;
-	public int[] xPoses;
-	public int[] yPoses;
-	public int[] zPoses;
+	public int[][] xPoses;
+	public int[][] yPoses;
+	public int[][] zPoses;
 	public int ticks;
+	public int currentPos;
+	public int dir = 0;
 
 	boolean active = false;
 
@@ -101,21 +108,168 @@ public class Door implements CommandExecutor, Serializable {
 		}
 		return false;
 	}
-
-	public void set(Block[] blocks, boolean open) {
-		if (open) {
-			this.open = new String[blocks.length];
-			for (int i = 0; i < blocks.length; i++) {
-				this.open[i] = blocks[i].getBlockData().getAsString() + "|" + blocks[i].getX() + "|" + blocks[i].getY()
-						+ "|" + blocks[i].getZ();
-			}
-		} else {
-			this.closed = new String[blocks.length];
-			for (int i = 0; i < blocks.length; i++) {
-				this.closed[i] = blocks[i].getBlockData().getAsString() + "|" + blocks[i].getX() + "|"
-						+ blocks[i].getY() + "|" + blocks[i].getZ();
+	
+	private long lastUpdateCall = 0;
+		
+	public void update() { // there are 50 milliseconds in 1 tick;  ticks * 50 = milliseconds
+		if (System.currentTimeMillis() - lastUpdateCall >= ticks * 50) {
+			lastUpdateCall = System.currentTimeMillis();
+			if (dir != 0) {
+				if (currentPos == -2)
+					currentPos = phases.length;
+				updateBlocks(currentPos, Math.min(phases.length, Math.max(-1, currentPos+dir)));
+				if (currentPos == phases.length)
+					currentPos = -2;
 			}
 		}
+	}
+	
+	public void updateBlocks(curr, next) {
+		if (curr == next) {
+			dir = 0;
+			return;
+		}
+		String[] currBlocks = getBlocks(curr);
+		String[] nextBlocks = getBlocks(next);
+		
+		int currPosIndex = curr+2;
+		if (curr < 0)
+			currPosIndex -= 2;
+		else if (curr == phases.length) {
+			currPosIndex = 0;
+		}
+		
+		int nextPosIndex = next+2;
+		if (next < 0)
+			nextPosIndex -= 2;
+		else if (next == phases.length) {
+			nextPosIndex = 0;
+		}
+		
+		//boolean[] changed = new boolean[currBlocks.length]
+		
+		for (int i = 0; i < currBlocks.length; i++) {
+			Block b = (new Location(Bukkit.getWorld(world), xPoses[currPosIndex][i], yPoses[currPosIndex][i], zPoses[currPosIndex][i])).getBlock();
+			b.setType(Material.CAVE_AIR);
+		}
+		
+		for (int i = 0; i < nextBlocks.length; i++) {
+			Block b = (new Location(Bukkit.getWorld(world), xPoses[nextPosIndex][i], yPoses[nextPosIndex][i], zPoses[nextPosIndex][i])).getBlock();
+			b.setBlockData(Bukkit.createBlockData(nextBlocks[i]));
+		}
+	}
+	
+	public Blocks[] getBlocks(phase) {
+		if (phase == OPEN)
+			return open;
+		else if (phase == CLOSED || phase == phases.length)
+			return closed;
+		return phases[phase];
+	}
+	
+	public void set(Block[] blocks, boolean open) {
+		if (open) {
+			currentPosition = OPEN;
+			this.open = new String[blocks.length];
+			for (int i = 0; i < blocks.length; i++) {
+				this.open[i] = blocks[i].getBlockData().getAsString();
+				addXPos(0, i, blocks[i].getX());
+				addYPos(0, i, blocks[i].getY());
+				addZPos(0, i, blocks[i].getZ());
+			}
+		} else {
+			currentPosition = CLOSED;
+			this.closed = new String[blocks.length];
+			for (int i = 0; i < blocks.length; i++) {
+				this.closed[i] = blocks[i].getBlockData().getAsString();
+				addXPos(1, i, blocks[i].getX());
+				addYPos(1, i, blocks[i].getY());
+				addZPos(1, i, blocks[i].getZ());
+			}
+		}
+	}
+	
+	public void set(Block[] blocks, int phase) {
+		currentPosition = phase;
+		if (phase <= 0)
+			set(blocks, phase == 0);
+		else {
+			if (phases == null)
+				phases = new String[phase+1][];
+			else if (phase >= phases.length) {
+				String[][] temp = phases; 
+				phases = new String[phase+1][];
+				for (int i = 0; i < temp.length; i++)
+					phases[i] = temp[i];
+			}
+			phases[phase] = new String[blocks.length];
+			for (int i = 0; i < blocks.length; i++) {
+				phases[phase][i] = blocks[i].getBlockData().getAsString();
+				this.xPoses[phase+2][i] = blocks[i].getX();
+				this.yPoses[phase+2][i] = blocks[i].getY();
+				this.zPoses[phase+2][i] = blocks[i].getZ();
+			}
+		}
+	}
+	
+	public void addXPos(int a, int b, int x) {
+		if (xPoses == null) 
+			xPoses = new int[a+1][];
+		else if (a >= xPoses.length) {
+			int[][] temp = xPoses;
+			xPoses = new String[a+1][];
+			for (int i = 0; i < temp.length; i++)
+				xPoses[i] = temp[i];
+		}
+		if (xPoses[a] == null)
+			xPoses[a] = new int[b+1];
+		else if (b >= xPoses[a].length) {
+			int[] temp = xPoses[a];
+			xPoses[a] = new int[a];
+			for (int i = 0; i < temp.length; i++)
+				xPoses[a][i] = temp[i];
+		}
+		xPoses[a][b] = x;
+	}
+	
+	public void addYPos(int a, int b, int y) {
+		if yxPoses == null) 
+			yPoses = new int[a+1][];
+		else if (a >= yPoses.length) {
+			int[][] temp = yPoses;
+			yPoses = new String[a+1][];
+			for (int i = 0; i < temp.length; i++)
+				yPoses[i] = temp[i];
+		}
+		if (yPoses[a] == null)
+			yPoses[a] = new int[b+1];
+		else if (b >= yPoses[a].length) {
+			int[] temp = yPoses[a];
+			yPoses[a] = new int[a];
+			for (int i = 0; i < temp.length; i++)
+				yPoses[a][i] = temp[i];
+		}
+		yPoses[a][b] = y;
+	}
+	
+	public void addZPos(int a, int b, int z) {
+		if (zPoses == null) 
+			zPoses = new int[a+1][];
+		else if (a >= zPoses.length) {
+			int[][] temp = zPoses;
+			zPoses = new String[a+1][];
+			for (int i = 0; i < temp.length; i++)
+				zPoses[i] = temp[i];
+		}
+		if (zPoses[a] == null)
+			zPoses[a] = new int[b+1];
+		else if (b >= zPoses[a].length) {
+			int[] temp = zPoses[a];
+			zPoses[a] = new int[a];
+			for (int i = 0; i < temp.length; i++)
+				zPoses[a][i] = temp[i];
+		}
+		zPoses[a][b] = z;
 	}
 
 	// loc.getBlock().setBlockData(Bukkit.createBlockData(datas[i-minX][j-minY][k-minZ]));
