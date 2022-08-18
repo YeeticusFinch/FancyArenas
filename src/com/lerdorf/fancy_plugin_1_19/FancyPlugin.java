@@ -7,7 +7,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class FancyPlugin extends JavaPlugin implements Listener {
 
@@ -40,4 +43,12 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 		event.getPlayer().sendMessage( "Welcome to the Yeet Squad Minecraft Server!\nEnjoy your stay!" );
 	}
 
+	public static WorldEditPlugin getWorldEdit() {
+		Plugin p = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
+		if (p instanceof WorldEditPlugin) return ((WorldEditPlugin) p);
+		p = Bukkit.getServer().getPluginManager().getPlugin("FastAsyncWorldEdit");
+		if (p instanceof WorldEditPlugin) return ((WorldEditPlugin) p);
+		return null;
+	}
+	
 }

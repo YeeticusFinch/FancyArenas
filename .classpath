@@ -11,5 +11,6 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="lib/worldedit-bukkit-7.2.12.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
