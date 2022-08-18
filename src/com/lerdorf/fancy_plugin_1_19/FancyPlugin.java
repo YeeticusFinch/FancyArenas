@@ -13,8 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class FancyPlugin extends JavaPlugin implements Listener {
-
-	public static ArrayList<Door> doors = new ArrayList<Door>();
 	
 	@Override
 	public void onEnable() {
@@ -85,9 +83,9 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 							System.out.println("File: " + e2 + " " + e2.substring(0, 4));
 							if (e.length() > 4 && e2.substring(0, 4).equals("door")) {
 								System.out.println("Loading " + e + "/FancyPlugin/" + e2);
-								int n = Integer.parseInt(e2.substring(4, e2.indexOf('.')));
-								while (doors.size() <= n) doors.add(null);
-								doors.set(n, new Door(e + "/FancyPlugin/" + e2));
+								String name = e2.substring(4, e2.indexOf('.'));
+								//while (Door.doors.size() <= n) Door.doors.add(null);
+								Door.doors.put(name, new Door(e + "/FancyPlugin/" + e2));
 							}
 						}
 					}
