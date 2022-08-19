@@ -164,6 +164,17 @@ public class Door implements CommandExecutor, Serializable {
 		}
 	}
 	
+	public void moveIt() {
+		if (currentPos == CLOSED)
+			dir = -1;
+		else if (currentPos == OPEN)
+			dir = 1;
+		else if (currentPos > phases.length/2)
+			dir = 1;
+		else
+			dir = 1;
+	}
+	
 	public void updateBlocks(int curr, int next) {
 		if (curr == next) {
 			dir = 0;

@@ -3,14 +3,17 @@ package com.lerdorf.fancy_plugin_1_19;
 import java.io.File;
 
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffectType;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
@@ -60,6 +63,22 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 		event.getPlayer().sendMessage( "Welcome to the Yeet Squad Minecraft Server!\nEnjoy your stay!" );
 	}
 
+	@EventHandler
+	public void onUseEvent(PlayerInteractEvent event) {
+		Player player = event.getPlayer();
+		if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
+		} else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
+		} else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			Location loc = player.getTargetBlock(null, 6).getLocation();
+			for (Door d : Door.doors.values()) {
+				if (d.leverX == loc.getBlockX() && d.leverY == loc.getBlockY() && d.leverZ == loc.getBlockZ()) {
+					d.moveIt();
+					break;
+				}
+			}
+		}
+	}
+	
 	public static WorldEditPlugin getWorldEdit() {
 		Plugin p = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit");
 		if (p instanceof WorldEditPlugin) return ((WorldEditPlugin) p);
