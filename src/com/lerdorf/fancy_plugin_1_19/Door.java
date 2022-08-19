@@ -82,7 +82,7 @@ public class Door implements CommandExecutor, Serializable {
 					sender.sendMessage("Listing doors:");
 						for (String k : doors.keySet()) {
 							Door d = doors.get(k);
-							sender.sendMessage(d.name + " key:" + k + " open_def:" + (d.open != null) + " close_def:" + (d.closed != null) + " phases:" + d.phases.length);
+							sender.sendMessage(d.name + " key:" + k + " open_def:" + (d.open != null) + " close_def:" + (d.closed != null) + " phases:" + d.phases.length + " current:" + currentPos);
 						}
 					
 				}
@@ -212,21 +212,36 @@ public class Door implements CommandExecutor, Serializable {
 			dir = 0;
 			return;
 		}
+		System.out.println("door_" + name + " " + curr + " -> " + next);
 		String[] currBlocks = getBlocks(curr);
 		String[] nextBlocks = getBlocks(next);
 		
+		if (currBlocks == null) {
+			if (curr < phases.length/2)
+				currBlocks = open;
+			else
+				currBlocks = closed;
+		}
+		
+		if (nextBlocks == null) {
+			if (next < phases.length/2)
+				nextBlocks = open;
+			else
+				nextBlocks = closed;
+		}
+		
 		int currPosIndex = curr+2;
-		if (curr < 0)
-			currPosIndex -= 2;
-		else if (curr == phases.length) {
+		if (curr == -1 || curr == OPEN)
 			currPosIndex = 0;
+		else if (curr == phases.length || curr == CLOSED) {
+			currPosIndex = 1;
 		}
 		
 		int nextPosIndex = next+2;
-		if (next < 0)
-			nextPosIndex -= 2;
-		else if (next == phases.length) {
+		if (next == -1 || next == OPEN)
 			nextPosIndex = 0;
+		else if (next == phases.length || next == CLOSED) {
+			nextPosIndex = 1;
 		}
 		
 		//boolean[] changed = new boolean[currBlocks.length]
@@ -240,6 +255,7 @@ public class Door implements CommandExecutor, Serializable {
 			Block b = (new Location(Bukkit.getWorld(world), xPoses[nextPosIndex][i], yPoses[nextPosIndex][i], zPoses[nextPosIndex][i])).getBlock();
 			b.setBlockData(Bukkit.createBlockData(nextBlocks[i]));
 		}
+		currentPos = next;
 	}
 	
 	public String[] getBlocks(int phase) {

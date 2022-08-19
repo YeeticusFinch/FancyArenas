@@ -1,5 +1,6 @@
 main: com.lerdorf.fancy_plugin_1_19.FancyPlugin
 name: CarlsFancyPlugin
+author: carl_alex
 version: 1.0
 api-version: 1.13
 
