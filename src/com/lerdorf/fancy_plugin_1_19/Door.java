@@ -75,7 +75,16 @@ public class Door implements CommandExecutor, Serializable {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("door")) {
 			Player player = (Player) sender;
-			if (args.length >= 2) {
+			if (args.length == 1) {
+				if (args[0].equalsIgnoreCase("list")) {
+					sender.sendMessage("Listing doors:");
+						for (Door d : doors.values()) {
+							sender.sendMessage(d.name);
+						}
+					
+				}
+			}
+			else if (args.length >= 2) {
 				if (args[1].equalsIgnoreCase("lever")) {
 					if (doors.containsKey(args[0])) {
 						Block b = player.getTargetBlock(null, 100);
@@ -111,10 +120,12 @@ public class Door implements CommandExecutor, Serializable {
 					for (BlockVector3 e : r) {
 						Block block = (new Location(player.getLocation().getWorld(), e.getX(), e.getY(), e.getZ())).getBlock();
 						if (block.getType() != Material.AIR && block.getType() != Material.CAVE_AIR && block.getType() != Material.VOID_AIR) {
+							sender.sendMessage("Added block to door");
 							blocks.add(block);
 						}
 						i++;
 					}
+					sender.sendMessage("Added blocks to door");
 
 					BlockVector3 min = r.getMinimumPoint();
 					BlockVector3 max = r.getMaximumPoint();
@@ -127,6 +138,7 @@ public class Door implements CommandExecutor, Serializable {
 						phase = CLOSED;
 					} else
 						phase = Integer.parseInt(args[1]); 
+					sender.sendMessage("Set phase to " + phase);
 					
 					if (doors.containsKey(args[0])) { // Edit existing Door
 						door = doors.get(args[0]);
@@ -134,6 +146,8 @@ public class Door implements CommandExecutor, Serializable {
 					} else { // Create new door
 						door = new Door(blocks.toArray(new Block[blocks.size()]), phase == 0, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), args.length > 2 ? Integer.parseInt(args[2]) : 20);
 					}
+					
+					sender.sendMessage("Door object acquired");
 					
 					door.name = args[0];
 					
