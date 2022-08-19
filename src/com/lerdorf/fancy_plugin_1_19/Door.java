@@ -75,24 +75,30 @@ public class Door implements CommandExecutor, Serializable {
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("door")) {
 			Player player = (Player) sender;
-			if (args.length == 1) {
-				if (args[0].equalsIgnoreCase("lever")) {
-					Block b = player.getTargetBlock(null, 100);
-					if (b == null)
-						sender.sendMessage("Error: you must be looking at a block");
-					else {
-						leverX = b.getLocation().getBlockX();
-						leverY = b.getLocation().getBlockY();
-						leverZ = b.getLocation().getBlockZ();
-						return true;
+			if (args.length >= 2) {
+				if (args[1].equalsIgnoreCase("lever")) {
+					if (doors.containsKey(args[0])) {
+						Block b = player.getTargetBlock(null, 100);
+						if (b == null)
+							sender.sendMessage("Error: you must be looking at a block");
+						else {
+							leverX = b.getLocation().getBlockX();
+							leverY = b.getLocation().getBlockY();
+							leverZ = b.getLocation().getBlockZ();
+							sender.sendMessage("Successfully added lever to door " + args[0]);
+							return true;
+						}
+					} else {
+						sender.sendMessage("Could not find door by name " + args[0]);
 					}
 				}
-			}
-			else if (args.length >= 2) {
 				if (args[0].equalsIgnoreCase("delete")) {
 					if (doors.containsKey(args[1])) {
 						doors.get(args[1]).delete();
 						doors.remove(args[1]);
+						sender.sendMessage("Successfully deleted door " + args[1]);
+					} else {
+						sender.sendMessage("Could not find door by name " + args[1]);
 					}
 					return true;
 				}
