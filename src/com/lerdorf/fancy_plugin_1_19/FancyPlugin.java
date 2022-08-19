@@ -72,7 +72,7 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 			Location loc = player.getTargetBlock(null, 6).getLocation();
 			//player.sendMessage("Right clicked block at " + loc.getX() + " " + loc.getY() + " " + loc.getZ());
 			for (Door d : Door.doors.values()) {
-				player.sendMessage("Lever at " + d.leverX + " " + d.leverY + " " + d.leverZ);
+				//player.sendMessage("Lever at " + d.leverX + " " + d.leverY + " " + d.leverZ);
 				if (d.leverX == loc.getBlockX() && d.leverY == loc.getBlockY() && d.leverZ == loc.getBlockZ()) {
 					d.moveIt();
 					break;

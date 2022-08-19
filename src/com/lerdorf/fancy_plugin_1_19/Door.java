@@ -35,16 +35,16 @@ public class Door implements CommandExecutor, Serializable {
 
 	public static transient HashMap<String, Door> doors = new HashMap<String, Door>();
 	
-	public static final int OPENING = 1, OPEN = -1;
+	public static final int OPENING = 1;
 	public static final int STATIONARY = 0;
-	public static final int CLOSING = -1, CLOSED = -2;
+	public static final int CLOSING = -1;
 
 	public int x1, y1, z1, x2, y2, z2, leverX, leverY, leverZ;
 	public String world;
 	public String name;
-	public String[] open;
+	//public String[] open;
 	public String[][] phases = new String[0][];
-	public String[] closed;
+	//public String[] closed;
 	public int[][] xPoses;
 	public int[][] yPoses;
 	public int[][] zPoses;
@@ -59,8 +59,8 @@ public class Door implements CommandExecutor, Serializable {
 	public Door() {
 	}
 
-	public Door(Block[] blocks, boolean open, int x1, int y1, int z1, int x2, int y2, int z2, int ticks, String world, String name) {
-		set(blocks, open);
+	public Door(Block[] blocks, int phase, int x1, int y1, int z1, int x2, int y2, int z2, int ticks, String world, String name) {
+		set(blocks, phase);
 		active = true;
 		this.x1 = x1;
 		this.y1 = y1;
@@ -82,7 +82,7 @@ public class Door implements CommandExecutor, Serializable {
 					sender.sendMessage("Listing doors:");
 						for (String k : doors.keySet()) {
 							Door d = doors.get(k);
-							sender.sendMessage(d.name + " key:" + k + " open_def:" + (d.open != null) + " close_def:" + (d.closed != null) + " phases:" + d.phases.length + " current:" + currentPos);
+							sender.sendMessage(d.name + " key:" + k + " phases:" + d.phases.length + " current:" + currentPos);
 						}
 					
 				}
@@ -101,6 +101,24 @@ public class Door implements CommandExecutor, Serializable {
 						}
 					} else {
 						sender.sendMessage("Could not find door by name " + args[0]);
+					}
+					return true;
+				} 
+				if (args[1].equalsIgnoreCase("phases")) {
+					if (doors.containsKey(args[0])) {
+						Door d = doors.get(args[0]);
+						//Block b = player.getTargetBlock(null, 100);
+						sender.sendMessage("Phases for door " + d.name);
+						for (int i = 0; i < d.phases.length; i++) {
+							sender.sendMessage("Phase:" + i);
+							if (phases[i] == null) {
+								sender.sendMessage("NULL");
+							} else {
+								for (int j = 0; j < phases[i].length; j++) {
+									sender.sendMessage(j+" - " + phases[i][j]);
+								}
+							}
+						}
 					}
 					return true;
 				}
@@ -135,10 +153,10 @@ public class Door implements CommandExecutor, Serializable {
 
 					int phase = 0;
 					
-					if (args[1].equalsIgnoreCase("open") || args[1].equalsIgnoreCase("opened")) {
-						phase = OPEN;
-					} else if (args[1].equalsIgnoreCase("close") || args[1].equalsIgnoreCase("closed")) {
-						phase = CLOSED;
+					if (args[1].equalsIgnoreCase("open") || args[1].equalsIgnoreCase("opened") || args[1].equalsIgnoreCase("close") || args[1].equalsIgnoreCase("closed")) {
+						phase = 0;
+					//} else if (args[1].equalsIgnoreCase("close") || args[1].equalsIgnoreCase("closed")) {
+					//	phase = CLOSED;
 					} else
 						phase = Integer.parseInt(args[1]); 
 					sender.sendMessage("Set phase to " + phase);
@@ -148,10 +166,10 @@ public class Door implements CommandExecutor, Serializable {
 						sender.sendMessage("Door object acquired");
 						if (args.length > 2) door.ticks = Integer.parseInt(args[2]);
 						if (phase < 0)
-							door.set(blocks.toArray(new Block[blocks.size()]), phase == OPEN);
+							door.set(blocks.toArray(new Block[blocks.size()]), phase);
 						door.set(blocks.toArray(new Block[blocks.size()]), phase);
 					} else { // Create new door
-						door = new Door(blocks.toArray(new Block[blocks.size()]), phase == OPEN, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), args.length > 2 ? Integer.parseInt(args[2]) : 20, player.getLocation().getWorld().getName(), args[0]);
+						door = new Door(blocks.toArray(new Block[blocks.size()]), phase, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), args.length > 2 ? Integer.parseInt(args[2]) : 20, player.getLocation().getWorld().getName(), args[0]);
 						sender.sendMessage("Door object created");
 						doors.put(door.name, door);
 					}
@@ -187,23 +205,20 @@ public class Door implements CommandExecutor, Serializable {
 		if (System.currentTimeMillis() - lastUpdateCall >= ticks * 50) {
 			lastUpdateCall = System.currentTimeMillis();
 			if (dir != 0) {
-				if (currentPos == -2)
-					currentPos = phases.length;
+				//if (currentPos == -2)
+				//	currentPos = phases.length;
 				updateBlocks(currentPos, Math.min(phases.length, Math.max(-1, currentPos+dir)));
-				if (currentPos == phases.length)
-					currentPos = -2;
+				//if (currentPos == phases.length)
+				//	currentPos = -2;
 			}
 		}
 	}
 	
 	public void moveIt() {
-		if (currentPos == CLOSED)
+		dir *= -1;
+		if (currentPos >= phases.length-1)
 			dir = -1;
-		else if (currentPos == OPEN)
-			dir = 1;
-		else if (currentPos > phases.length/2)
-			dir = 1;
-		else
+		else if (currentPos < 1)
 			dir = 1;
 	}
 	
@@ -217,82 +232,58 @@ public class Door implements CommandExecutor, Serializable {
 		String[] nextBlocks = getBlocks(next);
 		
 		if (currBlocks == null) {
-			if (curr < phases.length/2)
-				currBlocks = open;
-			else
-				currBlocks = closed;
+			System.out.println("Currblocks was null");
 		}
 		
 		if (nextBlocks == null) {
-			if (next < phases.length/2)
-				nextBlocks = open;
-			else
-				nextBlocks = closed;
+			System.out.println("Nextblocks was null");
 		}
 		
-		int currPosIndex = curr+2;
-		if (curr == -1 || curr == OPEN)
-			currPosIndex = 0;
-		else if (curr == phases.length || curr == CLOSED) {
-			currPosIndex = 1;
-		}
-		
-		int nextPosIndex = next+2;
-		if (next == -1 || next == OPEN)
-			nextPosIndex = 0;
-		else if (next == phases.length || next == CLOSED) {
-			nextPosIndex = 1;
-		}
+		//System.out.println("currPosIndex:" + currPosIndex + " nextPosIndex:" + nextPosIndex);
 		
 		//boolean[] changed = new boolean[currBlocks.length]
 		
 		for (int i = 0; i < currBlocks.length; i++) {
-			Block b = (new Location(Bukkit.getWorld(world), xPoses[currPosIndex][i], yPoses[currPosIndex][i], zPoses[currPosIndex][i])).getBlock();
+			Block b = (new Location(Bukkit.getWorld(world), xPoses[curr][i], yPoses[curr][i], zPoses[curr][i])).getBlock();
 			b.setType(Material.CAVE_AIR);
 		}
 		
 		for (int i = 0; i < nextBlocks.length; i++) {
-			Block b = (new Location(Bukkit.getWorld(world), xPoses[nextPosIndex][i], yPoses[nextPosIndex][i], zPoses[nextPosIndex][i])).getBlock();
+			Block b = (new Location(Bukkit.getWorld(world), xPoses[next][i], yPoses[next][i], zPoses[next][i])).getBlock();
 			b.setBlockData(Bukkit.createBlockData(nextBlocks[i]));
 		}
 		currentPos = next;
 	}
 	
 	public String[] getBlocks(int phase) {
-		if (phase == OPEN)
-			return open;
-		else if (phase == CLOSED || phase == phases.length)
-			return closed;
-		return phases[phase];
+		return phases[Math.min(phases.length-1, Math.max(0,phase))];
 	}
 	
-	public void set(Block[] blocks, boolean open) {
-		if (open) {
-			currentPos = OPEN;
-			this.open = new String[blocks.length];
-			for (int i = 0; i < blocks.length; i++) {
-				this.open[i] = blocks[i].getBlockData().getAsString();
-				addXPos(0, i, blocks[i].getX());
-				addYPos(0, i, blocks[i].getY());
-				addZPos(0, i, blocks[i].getZ());
-			}
-		} else {
-			currentPos = CLOSED;
-			this.closed = new String[blocks.length];
-			for (int i = 0; i < blocks.length; i++) {
-				this.closed[i] = blocks[i].getBlockData().getAsString();
-				addXPos(1, i, blocks[i].getX());
-				addYPos(1, i, blocks[i].getY());
-				addZPos(1, i, blocks[i].getZ());
-			}
-		}
-	}
+//	public void set(Block[] blocks, boolean open) {
+//		if (open) {
+//			currentPos = OPEN;
+//			this.open = new String[blocks.length];
+//			for (int i = 0; i < blocks.length; i++) {
+//				this.open[i] = blocks[i].getBlockData().getAsString();
+//				addXPos(0, i, blocks[i].getX());
+//				addYPos(0, i, blocks[i].getY());
+//				addZPos(0, i, blocks[i].getZ());
+//			}
+//		} else {
+//			currentPos = CLOSED;
+//			this.closed = new String[blocks.length];
+//			for (int i = 0; i < blocks.length; i++) {
+//				this.closed[i] = blocks[i].getBlockData().getAsString();
+//				addXPos(1, i, blocks[i].getX());
+//				addYPos(1, i, blocks[i].getY());
+//				addZPos(1, i, blocks[i].getZ());
+//			}
+//		}
+//	}
 	
 	public void set(Block[] blocks, int phase) {
 		currentPos = phase;
-		if (phase <= 0)
-			set(blocks, phase == 0);
-		else {
+		
 			if (phases == null)
 				phases = new String[phase+1][];
 			else if (phase >= phases.length) {
@@ -304,11 +295,11 @@ public class Door implements CommandExecutor, Serializable {
 			phases[phase] = new String[blocks.length];
 			for (int i = 0; i < blocks.length; i++) {
 				phases[phase][i] = blocks[i].getBlockData().getAsString();
-				addXPos(phase+2, i, blocks[i].getX());
-				addYPos(phase+2, i, blocks[i].getY());
-				addZPos(phase+2, i, blocks[i].getZ());
+				addXPos(phase, i, blocks[i].getX());
+				addYPos(phase, i, blocks[i].getY());
+				addZPos(phase, i, blocks[i].getZ());
 			}
-		}
+		
 	}
 	
 	public void addXPos(int a, int b, int x) {
@@ -428,9 +419,7 @@ public class Door implements CommandExecutor, Serializable {
 			leverZ = yeet.leverZ;
 			world = yeet.world;
 			name = yeet.name;
-			open = yeet.open;
 			phases = yeet.phases;
-			closed = yeet.closed;
 			xPoses = yeet.xPoses;
 			yPoses = yeet.yPoses;
 			zPoses = yeet.zPoses;
