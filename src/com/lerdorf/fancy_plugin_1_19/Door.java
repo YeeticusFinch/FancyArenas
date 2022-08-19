@@ -43,7 +43,7 @@ public class Door implements CommandExecutor, Serializable {
 	public String world;
 	public String name;
 	public String[] open;
-	public String[][] phases;
+	public String[][] phases = new String[0][];
 	public String[] closed;
 	public int[][] xPoses;
 	public int[][] yPoses;
@@ -59,7 +59,7 @@ public class Door implements CommandExecutor, Serializable {
 	public Door() {
 	}
 
-	public Door(Block[] blocks, boolean open, int x1, int y1, int z1, int x2, int y2, int z2, int ticks) {
+	public Door(Block[] blocks, boolean open, int x1, int y1, int z1, int x2, int y2, int z2, int ticks, String world, String name) {
 		set(blocks, open);
 		active = true;
 		this.x1 = x1;
@@ -69,7 +69,9 @@ public class Door implements CommandExecutor, Serializable {
 		this.y2 = y2;
 		this.z2 = z2;
 		this.ticks = ticks;
-		save("door_"+filepath);
+		this.name = name;
+		this.world = world;
+		save();
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -78,8 +80,9 @@ public class Door implements CommandExecutor, Serializable {
 			if (args.length == 1) {
 				if (args[0].equalsIgnoreCase("list")) {
 					sender.sendMessage("Listing doors:");
-						for (Door d : doors.values()) {
-							sender.sendMessage(d.name);
+						for (String k : doors.keySet()) {
+							Door d = doors.get(k);
+							sender.sendMessage(d.name + " key:" + k + " open_def:" + (d.open != null) + " close_def:" + (d.closed != null) + " phases:" + d.phases.length);
 						}
 					
 				}
@@ -91,15 +94,15 @@ public class Door implements CommandExecutor, Serializable {
 						if (b == null)
 							sender.sendMessage("Error: you must be looking at a block");
 						else {
-							leverX = b.getLocation().getBlockX();
-							leverY = b.getLocation().getBlockY();
-							leverZ = b.getLocation().getBlockZ();
-							sender.sendMessage("Successfully added lever to door " + args[0]);
-							return true;
+							doors.get(args[0]).leverX = b.getLocation().getBlockX();
+							doors.get(args[0]).leverY = b.getLocation().getBlockY();
+							doors.get(args[0]).leverZ = b.getLocation().getBlockZ();
+							sender.sendMessage("Successfully added lever to door " + args[0]+ " at " + doors.get(args[0]).leverX + " " + doors.get(args[0]).leverY + " " + doors.get(args[0]).leverZ);
 						}
 					} else {
 						sender.sendMessage("Could not find door by name " + args[0]);
 					}
+					return true;
 				}
 				if (args[0].equalsIgnoreCase("delete")) {
 					if (doors.containsKey(args[1])) {
@@ -142,18 +145,24 @@ public class Door implements CommandExecutor, Serializable {
 					
 					if (doors.containsKey(args[0])) { // Edit existing Door
 						door = doors.get(args[0]);
+						sender.sendMessage("Door object acquired");
 						if (args.length > 2) door.ticks = Integer.parseInt(args[2]);
+						if (phase < 0)
+							door.set(blocks.toArray(new Block[blocks.size()]), phase == OPEN);
+						door.set(blocks.toArray(new Block[blocks.size()]), phase);
 					} else { // Create new door
-						door = new Door(blocks.toArray(new Block[blocks.size()]), phase == 0, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), args.length > 2 ? Integer.parseInt(args[2]) : 20);
+						door = new Door(blocks.toArray(new Block[blocks.size()]), phase == OPEN, min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ(), args.length > 2 ? Integer.parseInt(args[2]) : 20, player.getLocation().getWorld().getName(), args[0]);
+						sender.sendMessage("Door object created");
+						doors.put(door.name, door);
 					}
 					
-					sender.sendMessage("Door object acquired");
+					//door.world = player.getLocation().getWorld().getName();
 					
-					door.name = args[0];
+					//door.name = args[0];
 					
-					doors.put(door.name, door);
+					door.save();
 					
-					sender.sendMessage("Successfully created new door " + door.name);
+					sender.sendMessage("Successfully added to door " + door.name);
 				} catch (Exception e) {
 					e.printStackTrace();
 					sender.sendMessage("Failed to create door: " + e.getMessage());
@@ -279,9 +288,9 @@ public class Door implements CommandExecutor, Serializable {
 			phases[phase] = new String[blocks.length];
 			for (int i = 0; i < blocks.length; i++) {
 				phases[phase][i] = blocks[i].getBlockData().getAsString();
-				this.xPoses[phase+2][i] = blocks[i].getX();
-				this.yPoses[phase+2][i] = blocks[i].getY();
-				this.zPoses[phase+2][i] = blocks[i].getZ();
+				addXPos(phase+2, i, blocks[i].getX());
+				addYPos(phase+2, i, blocks[i].getY());
+				addZPos(phase+2, i, blocks[i].getZ());
 			}
 		}
 	}
@@ -347,18 +356,23 @@ public class Door implements CommandExecutor, Serializable {
 	}
 	
 	public void delete() {
-		(new File(world + "/FancyPlugin/" + name + ".dat")).delete();
+		(new File(world + "/FancyPlugin/door_" + name + ".dat")).delete();
 	}
 	
 	public void save() {
 		// TODO Auto-generated method stub
 		try {
+			if (this.filepath == null)
+				this.filepath = world + "/FancyPlugin/door_" + name + ".dat";
+			(new File(world + "/FancyPlugin")).mkdirs();
+			(new File(this.filepath)).createNewFile();
 			FileOutputStream fos = new FileOutputStream(this.filepath);
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 
 			// write object to file
 			oos.writeObject(this);
 			//this.filepath = world+"/FancyPlugin/" + filename;
+			System.out.println("Writing to " + filepath + " with save()");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -367,14 +381,16 @@ public class Door implements CommandExecutor, Serializable {
 	public void save(String filename) {
 		try {
 			(new File(world + "/FancyPlugin")).mkdirs();
-			(new File(world + "/FancyPlugin/" + filename)).createNewFile();
-			FileOutputStream fos = new FileOutputStream(world + "/FancyPlugin/" + filename);
+			(new File(world + "/FancyPlugin/" + filename + ".dat")).createNewFile();
+			FileOutputStream fos = new FileOutputStream(world + "/FancyPlugin/" + filename + ".dat");
 			ObjectOutputStream oos = new ObjectOutputStream(fos);
 			
 			// write object to file
 			oos.writeObject(this);
 			
-			this.filepath = world+"/FancyPlugin/" + filename;
+			this.filepath = world+"/FancyPlugin/" + filename + ".dat";
+			
+			System.out.println("Writing to " + filepath + " with save(filename)");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}

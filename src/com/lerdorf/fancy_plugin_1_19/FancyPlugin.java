@@ -70,7 +70,9 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 		} else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
 		} else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			Location loc = player.getTargetBlock(null, 6).getLocation();
+			//player.sendMessage("Right clicked block at " + loc.getX() + " " + loc.getY() + " " + loc.getZ());
 			for (Door d : Door.doors.values()) {
+				player.sendMessage("Lever at " + d.leverX + " " + d.leverY + " " + d.leverZ);
 				if (d.leverX == loc.getBlockX() && d.leverY == loc.getBlockY() && d.leverZ == loc.getBlockZ()) {
 					d.moveIt();
 					break;
@@ -104,7 +106,7 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 							System.out.println("File: " + e2 + " " + e2.substring(0, 4));
 							if (e.length() > 4 && e2.substring(0, 4).equals("door")) {
 								System.out.println("Loading " + e + "/FancyPlugin/" + e2);
-								String name = e2.substring(4, e2.indexOf('.'));
+								String name = e2.substring(5, e2.indexOf('.'));
 								//while (Door.doors.size() <= n) Door.doors.add(null);
 								Door.doors.put(name, new Door(e + "/FancyPlugin/" + e2));
 							}
