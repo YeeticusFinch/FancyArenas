@@ -1,5 +1,11 @@
 package com.lerdorf.fancy_plugin_1_19;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,6 +89,13 @@ public class Door implements CommandExecutor, Serializable {
 				}
 			}
 			else if (args.length >= 2) {
+				if (args[0].equalsIgnoreCase("delete")) {
+					if (doors.containsKey(args[1])) {
+						doors.get(args[1]).delete();
+						doors.remove(args[1]);
+					}
+					return true;
+				}
 				Door door;
 				ArrayList<Block> blocks = new ArrayList<Block>();
 				try {
@@ -100,7 +113,14 @@ public class Door implements CommandExecutor, Serializable {
 					BlockVector3 min = r.getMinimumPoint();
 					BlockVector3 max = r.getMaximumPoint();
 
-					int phase = Integer.parseInt(args[1]); 
+					int phase = 0;
+					
+					if (args[1].equalsIgnoreCase("open") || args[1].equalsIgnoreCase("opened")) {
+						phase = OPEN;
+					} else if (args[1].equalsIgnoreCase("close") || args[1].equalsIgnoreCase("closed")) {
+						phase = CLOSED;
+					} else
+						phase = Integer.parseInt(args[1]); 
 					
 					if (doors.containsKey(args[0])) { // Edit existing Door
 						door = doors.get(args[0]);
@@ -125,6 +145,10 @@ public class Door implements CommandExecutor, Serializable {
 		return false;
 	}
 	
+	public Door(String filepath) {
+		load(filepath);
+	}
+	
 	private long lastUpdateCall = 0;
 		
 	public void update() { // there are 50 milliseconds in 1 tick;  ticks * 50 = milliseconds
@@ -140,7 +164,7 @@ public class Door implements CommandExecutor, Serializable {
 		}
 	}
 	
-	public void updateBlocks(curr, next) {
+	public void updateBlocks(int curr, int next) {
 		if (curr == next) {
 			dir = 0;
 			return;
@@ -175,7 +199,7 @@ public class Door implements CommandExecutor, Serializable {
 		}
 	}
 	
-	public Blocks[] getBlocks(phase) {
+	public String[] getBlocks(int phase) {
 		if (phase == OPEN)
 			return open;
 		else if (phase == CLOSED || phase == phases.length)
@@ -185,7 +209,7 @@ public class Door implements CommandExecutor, Serializable {
 	
 	public void set(Block[] blocks, boolean open) {
 		if (open) {
-			currentPosition = OPEN;
+			currentPos = OPEN;
 			this.open = new String[blocks.length];
 			for (int i = 0; i < blocks.length; i++) {
 				this.open[i] = blocks[i].getBlockData().getAsString();
@@ -194,7 +218,7 @@ public class Door implements CommandExecutor, Serializable {
 				addZPos(0, i, blocks[i].getZ());
 			}
 		} else {
-			currentPosition = CLOSED;
+			currentPos = CLOSED;
 			this.closed = new String[blocks.length];
 			for (int i = 0; i < blocks.length; i++) {
 				this.closed[i] = blocks[i].getBlockData().getAsString();
@@ -206,7 +230,7 @@ public class Door implements CommandExecutor, Serializable {
 	}
 	
 	public void set(Block[] blocks, int phase) {
-		currentPosition = phase;
+		currentPos = phase;
 		if (phase <= 0)
 			set(blocks, phase == 0);
 		else {
@@ -233,7 +257,7 @@ public class Door implements CommandExecutor, Serializable {
 			xPoses = new int[a+1][];
 		else if (a >= xPoses.length) {
 			int[][] temp = xPoses;
-			xPoses = new String[a+1][];
+			xPoses = new int[a+1][];
 			for (int i = 0; i < temp.length; i++)
 				xPoses[i] = temp[i];
 		}
@@ -249,11 +273,11 @@ public class Door implements CommandExecutor, Serializable {
 	}
 	
 	public void addYPos(int a, int b, int y) {
-		if yxPoses == null) 
+		if (yPoses == null) 
 			yPoses = new int[a+1][];
 		else if (a >= yPoses.length) {
 			int[][] temp = yPoses;
-			yPoses = new String[a+1][];
+			yPoses = new int[a+1][];
 			for (int i = 0; i < temp.length; i++)
 				yPoses[i] = temp[i];
 		}
@@ -273,7 +297,7 @@ public class Door implements CommandExecutor, Serializable {
 			zPoses = new int[a+1][];
 		else if (a >= zPoses.length) {
 			int[][] temp = zPoses;
-			zPoses = new String[a+1][];
+			zPoses = new int[a+1][];
 			for (int i = 0; i < temp.length; i++)
 				zPoses[i] = temp[i];
 		}
@@ -286,6 +310,10 @@ public class Door implements CommandExecutor, Serializable {
 				zPoses[a][i] = temp[i];
 		}
 		zPoses[a][b] = z;
+	}
+	
+	public void delete() {
+		(new File(world + "/FancyPlugin/" + name + ".dat")).delete();
 	}
 	
 	public void save() {
@@ -344,7 +372,7 @@ public class Door implements CommandExecutor, Serializable {
 			currentPos = yeet.currentPos;
 			dir = yeet.dir;
 			active = yeet.active;
-			this.filepath = filepath
+			this.filepath = filepath;
 			
 		} catch (IOException ex) {
 			ex.printStackTrace();

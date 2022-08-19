@@ -38,5 +38,5 @@ commands:
       permission: FancyPlugin.heal
    door:
       description: Creates a door, the phase can be `open`, `close`, or a number (for inbetween stages)
-      usage: /door [name] [phase] [delay]
+      usage: /door (delete) [name] [phase/lever] [delay]
       permission: FancyPlugin.door

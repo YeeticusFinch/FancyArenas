@@ -1,5 +1,7 @@
 package com.lerdorf.fancy_plugin_1_19;
 
+import java.io.File;
+
 import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.entity.*;
@@ -48,7 +50,7 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 	@Override
 	public void onDisable() {
 		System.out.println("Shutting down Fancy Plugin...");
-		for (Door d : doors)
+		for (Door d : Door.doors.values())
 			d.save();
 	}
 
@@ -95,9 +97,9 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 	}
 	
 	public void doorUpdate() {
-		if (doors == null)
+		if (Door.doors == null)
 			return;
-		for (Door d : doors) {
+		for (Door d : Door.doors.values()) {
 			if (d != null)
 				d.update();
 		}
