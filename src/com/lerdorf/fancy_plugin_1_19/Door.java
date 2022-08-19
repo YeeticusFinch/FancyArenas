@@ -151,6 +151,8 @@ public class Door implements CommandExecutor, Serializable {
 					
 					door.name = args[0];
 					
+					doors.put(door.name, door);
+					
 					sender.sendMessage("Successfully created new door " + door.name);
 				} catch (Exception e) {
 					e.printStackTrace();
