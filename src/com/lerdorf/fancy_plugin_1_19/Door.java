@@ -120,12 +120,12 @@ public class Door implements CommandExecutor, Serializable {
 					for (BlockVector3 e : r) {
 						Block block = (new Location(player.getLocation().getWorld(), e.getX(), e.getY(), e.getZ())).getBlock();
 						if (block.getType() != Material.AIR && block.getType() != Material.CAVE_AIR && block.getType() != Material.VOID_AIR) {
-							sender.sendMessage("Added block to door");
+							//sender.sendMessage("Added block to door");
 							blocks.add(block);
+							i++;
 						}
-						i++;
 					}
-					sender.sendMessage("Added blocks to door");
+					sender.sendMessage("Added " + i + " blocks to door");
 
 					BlockVector3 min = r.getMinimumPoint();
 					BlockVector3 max = r.getMaximumPoint();
@@ -154,7 +154,8 @@ public class Door implements CommandExecutor, Serializable {
 					sender.sendMessage("Successfully created new door " + door.name);
 				} catch (Exception e) {
 					e.printStackTrace();
-					sender.sendMessage("Failed to get WorldEdit selection");
+					sender.sendMessage("Failed to create door: " + e.getMessage());
+					//sender.sendMessage(e.getCause());
 				}
 
 			} else {
@@ -296,7 +297,7 @@ public class Door implements CommandExecutor, Serializable {
 			xPoses[a] = new int[b+1];
 		else if (b >= xPoses[a].length) {
 			int[] temp = xPoses[a];
-			xPoses[a] = new int[a];
+			xPoses[a] = new int[b+1];
 			for (int i = 0; i < temp.length; i++)
 				xPoses[a][i] = temp[i];
 		}
@@ -316,7 +317,7 @@ public class Door implements CommandExecutor, Serializable {
 			yPoses[a] = new int[b+1];
 		else if (b >= yPoses[a].length) {
 			int[] temp = yPoses[a];
-			yPoses[a] = new int[a];
+			yPoses[a] = new int[b+1];
 			for (int i = 0; i < temp.length; i++)
 				yPoses[a][i] = temp[i];
 		}
@@ -336,7 +337,7 @@ public class Door implements CommandExecutor, Serializable {
 			zPoses[a] = new int[b+1];
 		else if (b >= zPoses[a].length) {
 			int[] temp = zPoses[a];
-			zPoses[a] = new int[a];
+			zPoses[a] = new int[b+1];
 			for (int i = 0; i < temp.length; i++)
 				zPoses[a][i] = temp[i];
 		}
