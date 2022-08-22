@@ -1,6 +1,10 @@
 package com.lerdorf.fancy_plugin_1_19;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -19,11 +23,17 @@ import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class FancyPlugin extends JavaPlugin implements Listener {
 	
+	public static ArrayList<String> mhProps;
+	
+	public static FancyPlugin instance = null;
+	
 	@Override
 	public void onEnable() {
 		System.out.println("Starting FancyPlugin");
 		
 		getServer().getPluginManager().registerEvents(this, this);
+		this.getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+		instance = this;
 		
 		// Register our command "kit" (set an instance of your command class as executor)
 		this.getCommand("wr").setExecutor(new WorldReset());
@@ -35,7 +45,16 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 		this.getCommand("healall").setExecutor(new Heal());
 		this.getCommand("ha").setExecutor(new Heal());
 		this.getCommand("door").setExecutor(new Door());
+		this.getCommand("mh").setExecutor(new Manhunt());
+		this.getCommand("yeet").setExecutor(new Manhunt());
 		loadSaves();
+		
+		try {
+			mhProps = FileIO.read("../mc-manhunt/server.properties");
+		} catch (IOException e1) {
+			System.out.println("Error reading from mc-manhunt's properties");
+			e1.printStackTrace();
+		}
 		
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
 			  @Override
@@ -49,6 +68,21 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 			  }
 			}, 0L, 1L);
 	}
+	
+	 public static void sendPlayerToServer(Player player, String server) {
+         try {
+           ByteArrayOutputStream b = new ByteArrayOutputStream();
+           DataOutputStream out = new DataOutputStream(b);
+           out.writeUTF("Connect");
+           out.writeUTF(server);
+           player.sendPluginMessage(FancyPlugin.instance, "BungeeCord", b.toByteArray());
+           b.close();
+           out.close();
+         }
+         catch (Exception e) {
+           player.sendMessage(ChatColor.RED+"Error when trying to connect to "+server);
+         }
+       }
 	
 	@Override
 	public void onDisable() {
@@ -69,11 +103,12 @@ public class FancyPlugin extends JavaPlugin implements Listener {
 		if (player.hasPotionEffect(PotionEffectType.INVISIBILITY)) {
 		} else if (event.getAction() == Action.RIGHT_CLICK_AIR) {
 		} else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			Location loc = player.getTargetBlock(null, 6).getLocation();
+			Location loc = event.getClickedBlock().getLocation();
+			//Location loc = player.getTargetBlock(null, 6).getLocation();
 			//player.sendMessage("Right clicked block at " + loc.getX() + " " + loc.getY() + " " + loc.getZ());
 			for (Door d : Door.doors.values()) {
 				//player.sendMessage("Lever at " + d.leverX + " " + d.leverY + " " + d.leverZ);
-				if (d.leverX == loc.getBlockX() && d.leverY == loc.getBlockY() && d.leverZ == loc.getBlockZ()) {
+				if ((d.leverX == loc.getBlockX() && d.leverY == loc.getBlockY() && d.leverZ == loc.getBlockZ()) || d.lever2X == loc.getBlockX() && d.lever2Y == loc.getBlockY() && d.lever2Z == loc.getBlockZ()) {
 					d.moveIt();
 					break;
 				}

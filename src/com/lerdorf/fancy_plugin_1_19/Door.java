@@ -13,10 +13,14 @@ import java.util.HashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
@@ -39,7 +43,7 @@ public class Door implements CommandExecutor, Serializable {
 	public static final int STATIONARY = 0;
 	public static final int CLOSING = -1;
 
-	public int x1, y1, z1, x2, y2, z2, leverX, leverY, leverZ;
+	public int x1, y1, z1, x2, y2, z2, leverX, leverY, leverZ, lever2X, lever2Y, lever2Z;
 	public String world;
 	public String name;
 	//public String[] open;
@@ -82,12 +86,21 @@ public class Door implements CommandExecutor, Serializable {
 					sender.sendMessage("Listing doors:");
 						for (String k : doors.keySet()) {
 							Door d = doors.get(k);
-							sender.sendMessage(d.name + " key:" + k + " phases:" + d.phases.length + " current:" + currentPos);
+							sender.sendMessage(d.name + " key:" + k + " phases:" + d.phases.length + " current:" + d.currentPos);
 						}
 					
 				}
 			}
 			else if (args.length >= 2) {
+				if (args.length == 3 && args[1].equalsIgnoreCase("phase")) {
+					if (doors.containsKey(args[0])) {
+						doors.get(args[0]).updateBlocks(doors.get(args[0]).currentPos, Integer.parseInt(args[2]));
+						sender.sendMessage("Showing phase " + args[2] + " of door " + args[0]);
+					} else {
+						sender.sendMessage("Could not find door by name " + args[0]);
+					}
+					return true;
+				}
 				if (args[1].equalsIgnoreCase("lever")) {
 					if (doors.containsKey(args[0])) {
 						Block b = player.getTargetBlock(null, 100);
@@ -98,6 +111,22 @@ public class Door implements CommandExecutor, Serializable {
 							doors.get(args[0]).leverY = b.getLocation().getBlockY();
 							doors.get(args[0]).leverZ = b.getLocation().getBlockZ();
 							sender.sendMessage("Successfully added lever to door " + args[0]+ " at " + doors.get(args[0]).leverX + " " + doors.get(args[0]).leverY + " " + doors.get(args[0]).leverZ);
+						}
+					} else {
+						sender.sendMessage("Could not find door by name " + args[0]);
+					}
+					return true;
+				} 
+				if (args[1].equalsIgnoreCase("lever2")) {
+					if (doors.containsKey(args[0])) {
+						Block b = player.getTargetBlock(null, 100);
+						if (b == null)
+							sender.sendMessage("Error: you must be looking at a block");
+						else {
+							doors.get(args[0]).lever2X = b.getLocation().getBlockX();
+							doors.get(args[0]).lever2Y = b.getLocation().getBlockY();
+							doors.get(args[0]).lever2Z = b.getLocation().getBlockZ();
+							sender.sendMessage("Successfully added lever to door " + args[0]+ " at " + doors.get(args[0]).lever2X + " " + doors.get(args[0]).lever2Y + " " + doors.get(args[0]).lever2Z);
 						}
 					} else {
 						sender.sendMessage("Could not find door by name " + args[0]);
@@ -207,7 +236,10 @@ public class Door implements CommandExecutor, Serializable {
 			if (dir != 0) {
 				//if (currentPos == -2)
 				//	currentPos = phases.length;
-				updateBlocks(currentPos, Math.min(phases.length, Math.max(-1, currentPos+dir)));
+				if (currentPos+dir < 0 || currentPos+dir > phases.length-1)
+					dir = 0;
+				else
+					updateBlocks(currentPos, Math.min(phases.length-1, Math.max(0, currentPos+dir)));
 				//if (currentPos == phases.length)
 				//	currentPos = -2;
 			}
@@ -227,7 +259,7 @@ public class Door implements CommandExecutor, Serializable {
 			dir = 0;
 			return;
 		}
-		System.out.println("door_" + name + " " + curr + " -> " + next);
+		//System.out.println("door_" + name + " " + curr + " -> " + next);
 		String[] currBlocks = getBlocks(curr);
 		String[] nextBlocks = getBlocks(next);
 		
@@ -246,11 +278,14 @@ public class Door implements CommandExecutor, Serializable {
 		for (int i = 0; i < currBlocks.length; i++) {
 			Block b = (new Location(Bukkit.getWorld(world), xPoses[curr][i], yPoses[curr][i], zPoses[curr][i])).getBlock();
 			b.setType(Material.CAVE_AIR);
+			for(Entity en : b.getWorld().getNearbyEntities(b.getLocation(), 1, 1, 1)) { if(!(en instanceof Item)) continue; en.remove(); }
 		}
 		
 		for (int i = 0; i < nextBlocks.length; i++) {
 			Block b = (new Location(Bukkit.getWorld(world), xPoses[next][i], yPoses[next][i], zPoses[next][i])).getBlock();
 			b.setBlockData(Bukkit.createBlockData(nextBlocks[i]));
+			if (i%3 == 0)
+				b.getWorld().playSound(b.getLocation(), Sound.BLOCK_PISTON_EXTEND, 1, 0.5f);
 		}
 		currentPos = next;
 	}
@@ -417,6 +452,9 @@ public class Door implements CommandExecutor, Serializable {
 			leverX = yeet.leverX;
 			leverY = yeet.leverY;
 			leverZ = yeet.leverZ;
+			lever2X = yeet.lever2X;
+			lever2Y = yeet.lever2Y;
+			lever2Z = yeet.lever2Z;
 			world = yeet.world;
 			name = yeet.name;
 			phases = yeet.phases;

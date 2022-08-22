@@ -41,3 +41,11 @@ commands:
       description: Creates a door, the phase can be `open`, `close`, or a number (for inbetween stages)
       usage: /door (delete) [name] [phase/lever] [delay]
       permission: FancyPlugin.door
+   mh:
+      description: Manhunt commands
+      usage: /mh [stop/start/del/prop/regen/datapack]
+      permission: FancyPlugin.mh
+   yeet:
+      description: Yeets yourself to another server
+      usage: /yeet [server name]
+      permission: FancyPlugin.yeet
