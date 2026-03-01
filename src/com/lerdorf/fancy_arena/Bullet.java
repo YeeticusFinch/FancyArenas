@@ -321,7 +321,9 @@ public class Bullet {
 	}
 	
 	public void hit(Block block, Damageable entity, int k, Location location) {
-		if ((hitEffect == 17) && (block != null || entity != null)) // Go through entities or blocks
+		if (block == null && entity == null) {
+			dead[k] = true; // Range expired — always kill, even piercing bullets
+		} else if ((hitEffect == 17) && (block != null || entity != null)) // Go through entities or blocks
 			dead[k] = dead[k]; // Don't stop the bullet
 		else if (block == null && (hitEffect == 6 || hitEffect == 7 || hitEffect == 9 || hitEffect == 19 || hitEffect == 26)) // Pierce through entities
 			dead[k] = dead[k]; // Don't stop the bullet
@@ -1079,6 +1081,8 @@ public class Bullet {
 	}
 	
 	public static boolean intersectsBlock(Location loc, double radius) {
+		if (!loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4))
+			return false;
 		if (loc.getBlock() != null && !loc.getBlock().isPassable() && !loc.getBlock().isLiquid()) {
 			Vector minVector = loc.toVector().clone().subtract(new Vector(radius, radius, radius));
 			Vector maxVector = loc.toVector().clone().add(new Vector(radius, radius, radius));
