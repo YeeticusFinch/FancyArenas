@@ -1,51 +1,39 @@
-main: com.lerdorf.fancy_plugin_1_19.FancyPlugin
-name: CarlsFancyPlugin
+main: com.lerdorf.fancy_arena.FancyArena
+name: CarlsFancyArenas
 author: carl_alex
 version: 1.0
 api-version: 1.13
 
 commands:
-   worldreset:
-      description: Resets the Sky Battle map by reloading it from a backup
-      usage: /worldreset
-      permission: FancyPlugin.worldreset
-   wr:
-      description: Lazy way to reset the Sky Battle map by reloading it from a backup
-      usage: /wr
-      permission: FancyPlugin.worldreset
-   sg:
-      description: Lazy way to start wuhu island survival games
-      usage: /sg
-      permission: FancyPlugin.survivalgames
-   survivalgames:
-      description: Start wuhu island survival games
-      usage: /survivalgames
-      permission: FancyPlugin.survivalgames
-   heal:
-      description: Heals your health and saturation
-      usage: /heal
-      permission: FancyPlugin.heal
-   h:
-      description: Heals your health and saturation
-      usage: /h
-      permission: FancyPlugin.heal
-   healall:
-      description: Heals health and saturation for all players
-      usage: /healall
-      permission: FancyPlugin.heal
-   ha:
-      description: Heals health and saturation for all players
-      usage: /ha
-      permission: FancyPlugin.heal
-   door:
-      description: Creates a door, the phase can be `open`, `close`, or a number (for inbetween stages)
-      usage: /door (delete) [name] [phase/lever] [delay]
-      permission: FancyPlugin.door
-   mh:
-      description: Manhunt commands
-      usage: /mh [stop/start/del/prop/regen/datapack]
-      permission: FancyPlugin.mh
-   yeet:
-      description: Yeets yourself to another server
-      usage: /yeet [server name]
-      permission: FancyPlugin.yeet
+   moditem:
+      description: Modifies the attributes and metadata of the item in your hand
+      usage: /moditem [options]
+      permission: FancyArenas.moditem
+   fancymob:
+      description: For creating custom mobs
+      usage: /fancymob [options]
+      permission: FancyArenas.fancymob
+   fancyitem:
+      description: For managing custom items
+      usage: /fancyitem [options]
+      permission: FancyArenas.fancyitem
+   fancyarena:
+      description: For setting up custom arenas and dungeons
+      usage: /fancyarena [options]
+      permission: FancyArenas.fancyarena
+   fa:
+      description: For setting up custom arenas and dungeons
+      usage: /fa [options]
+      permission: FancyArenas.fancyarena
+   shop:
+      description: Shopping for the yeet squad
+      usage: /shop
+      permission: FancyArenas.shop
+   cbscan:
+      description: Scans for command blocks
+      usage: /cbscan <radius>
+      permission: FancyArenas.cbscan
+   rm:
+      description: Removes an entity
+      usage: /rm <selector>
+      permission: FancyArenas.rm
